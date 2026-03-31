@@ -44,6 +44,14 @@ export function SystemHeader() {
           <span className="text-gray-600">WIN-ONLY:</span>
           <span className="text-green-400">ENFORCED</span>
         </div>
+        <div className="flex items-center gap-1">
+          <span className="text-gray-600">SOVEREIGN:</span>
+          <span className="text-amber-400 animate-pulse">LOCKED</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-gray-600">VM:</span>
+          <span className="text-red-400">EXCLUDED</span>
+        </div>
         <div className="text-green-500">{timeStr}</div>
       </div>
     </div>
