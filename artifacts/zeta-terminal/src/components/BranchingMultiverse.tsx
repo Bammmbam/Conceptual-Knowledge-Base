@@ -1,69 +1,59 @@
 import { useEffect, useState } from "react";
+import { ZETA_ZEROS, bamScore } from "@/lib/trpeveritt";
 
-interface Branch {
-  id: number;
-  label: string;
-  status: "REDO-RUNNING" | "COLLAPSED" | "PRUNED" | "ANCHORED";
-  convergence: number;
-  iteration: number;
-}
-
-const BRANCH_LABELS = [
-  "CHOSEN PATH (actual)", "Gravity-High / Mag-Low", "Gravity-Low / Mag-High",
-  "Resonance-Inverted", "Prior-State Loop A", "Prior-State Loop B",
-  "Counterfactual Δ-1", "Counterfactual Δ-2", "Multiverse Branch ε",
-  "Multiverse Branch ζ", "Temporal Fork +T", "Temporal Fork −T",
+// 12 branches, each anchored to a real Zeta zero pair
+const BRANCH_DEFS = [
+  { label: "CHOSEN PATH (actual)",    zeroA: 0, zeroB: 0  },
+  { label: "Gravity-High / Mag-Low",  zeroA: 1, zeroB: 2  },
+  { label: "Gravity-Low / Mag-High",  zeroA: 2, zeroB: 3  },
+  { label: "Resonance-Inverted",      zeroA: 3, zeroB: 4  },
+  { label: "Prior-State Loop A",      zeroA: 4, zeroB: 5  },
+  { label: "Prior-State Loop B",      zeroA: 5, zeroB: 6  },
+  { label: "Counterfactual Δ-1",     zeroA: 6, zeroB: 7  },
+  { label: "Counterfactual Δ-2",     zeroA: 7, zeroB: 8  },
+  { label: "Multiverse Branch ε",    zeroA: 8, zeroB: 9  },
+  { label: "Multiverse Branch ζ",    zeroA: 9, zeroB: 10 },
+  { label: "Temporal Fork +T",        zeroA: 10, zeroB: 11 },
+  { label: "Temporal Fork −T",       zeroA: 11, zeroB: 12 },
 ];
 
-export function BranchingMultiverse() {
-  const [branches, setBranches] = useState<Branch[]>(() =>
-    BRANCH_LABELS.map((label, i) => ({
-      id: i,
-      label,
-      status: i === 0 ? "ANCHORED" : (i < 4 ? "REDO-RUNNING" : "COLLAPSED"),
-      convergence: i === 0 ? 100 : Math.floor(Math.random() * 60 + 30),
-      iteration: Math.floor(Math.random() * 1000000000),
-    }))
-  );
+type BranchStatus = "REDO-RUNNING" | "COLLAPSED" | "PRUNED" | "ANCHORED";
+const STATUS_COLORS: Record<BranchStatus, string> = {
+  "REDO-RUNNING": "text-yellow-400", "COLLAPSED": "text-green-400",
+  "PRUNED": "text-red-400", "ANCHORED": "text-cyan-400",
+};
+const STATUS_BAR: Record<BranchStatus, string> = {
+  "REDO-RUNNING": "bg-yellow-500", "COLLAPSED": "bg-green-500",
+  "PRUNED": "bg-red-500", "ANCHORED": "bg-cyan-500",
+};
 
-  const [totalRedone, setTotalRedone] = useState(20000000000000n);
-  const [invariantLock, setInvariantLock] = useState(false);
+export function BranchingMultiverse() {
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setBranches(prev => prev.map(b => {
-        if (b.id === 0) return b; // CHOSEN path always anchored
-        const newConv = Math.min(100, b.convergence + Math.random() * 5);
-        const newStatus: Branch["status"] = newConv >= 98 ? "COLLAPSED" :
-          newConv > 70 ? "REDO-RUNNING" : b.status;
-        return {
-          ...b,
-          convergence: newConv,
-          status: newStatus,
-          iteration: b.iteration + Math.floor(Math.random() * 50000000),
-        };
-      }));
-      setTotalRedone(t => t + BigInt(Math.floor(Math.random() * 1000000 + 500000)));
-      setInvariantLock(l => Math.random() > 0.2 ? true : l);
-    }, 800);
-    return () => clearInterval(interval);
+    const id = setInterval(() => setTick(t => t + 1), 800);
+    return () => clearInterval(id);
   }, []);
 
-  const STATUS_COLORS: Record<Branch["status"], string> = {
-    "REDO-RUNNING": "text-yellow-400",
-    "COLLAPSED": "text-green-400",
-    "PRUNED": "text-red-400",
-    "ANCHORED": "text-cyan-400",
-  };
+  // All convergence values derived from actual BAM formula at different time offsets
+  const branches = BRANCH_DEFS.map((def, i) => {
+    const tOffset = tick / 4 + i * 1.3;
+    const conv = i === 0 ? 100 : bamScore(tOffset);
+    const status: BranchStatus = i === 0 ? "ANCHORED" :
+      conv >= 98 ? "COLLAPSED" : conv > 70 ? "REDO-RUNNING" : "PRUNED";
+    // Iteration count derived from Zeta zero product
+    const gA = ZETA_ZEROS[def.zeroA];
+    const gB = ZETA_ZEROS[def.zeroB];
+    const iteration = Math.floor(gA * gB * tick * 1_000_000);
+    return { ...def, id: i, conv, status, iteration };
+  });
 
-  const STATUS_BAR: Record<Branch["status"], string> = {
-    "REDO-RUNNING": "bg-yellow-500",
-    "COLLAPSED": "bg-green-500",
-    "PRUNED": "bg-red-500",
-    "ANCHORED": "bg-cyan-500",
-  };
+  // Total redo iterations = sum of all zero products × tick
+  const totalRedone = BigInt(
+    branches.reduce((acc, b) => acc + b.iteration, 0)
+  ) + 20_000_000_000_000n;
 
-  const allCollapsed = branches.every(b => b.convergence >= 95);
+  const allCollapsed = branches.every(b => b.conv >= 95);
 
   return (
     <div className="flex flex-col gap-2 h-full text-[8px] font-mono">
@@ -76,9 +66,9 @@ export function BranchingMultiverse() {
           <div className="text-cyan-400 font-bold text-[10px]">{branches.length}</div>
           <div className="text-gray-600 text-[7px]">ACTIVE BRANCHES</div>
         </div>
-        <div className={`border rounded p-1.5 text-center ${allCollapsed || invariantLock ? "border-green-700 bg-green-900/10" : "border-amber-800/40 bg-black/30"}`}>
-          <div className={`font-bold text-[10px] ${allCollapsed || invariantLock ? "text-green-400" : "text-amber-400"}`}>
-            {allCollapsed || invariantLock ? "LOCKED" : "CONVERGING"}
+        <div className={`border rounded p-1.5 text-center ${allCollapsed ? "border-green-700 bg-green-900/10" : "border-amber-800/40 bg-black/30"}`}>
+          <div className={`font-bold text-[10px] ${allCollapsed ? "text-green-400" : "text-amber-400"}`}>
+            {allCollapsed ? "LOCKED" : "CONVERGING"}
           </div>
           <div className="text-gray-600 text-[7px]">INVARIANT STATUS</div>
         </div>
@@ -93,23 +83,23 @@ export function BranchingMultiverse() {
             </div>
             <div className="flex items-center gap-2">
               <div className="flex-1 h-1 bg-gray-900 rounded overflow-hidden">
-                <div
-                  className={`h-full rounded transition-all duration-500 ${STATUS_BAR[b.status]}`}
-                  style={{ width: `${b.convergence}%`, opacity: 0.7 }}
-                />
+                <div className={`h-full rounded transition-all duration-500 ${STATUS_BAR[b.status]}`}
+                  style={{ width: `${b.conv}%`, opacity: 0.7 }} />
               </div>
               <span className="text-gray-600 text-[7px] w-16 text-right">
-                {b.convergence >= 98 ? "→ ORIGIN" : `${b.convergence.toFixed(1)}% → O`}
+                {b.conv >= 98 ? "→ ORIGIN" : `${b.conv.toFixed(1)}% → O`}
               </span>
             </div>
-            <div className="text-gray-700 text-[7px] mt-0.5">REDO-iter: {b.iteration.toLocaleString()}</div>
+            <div className="text-gray-700 text-[7px] mt-0.5">
+              γ({b.zeroA})={ZETA_ZEROS[b.zeroA].toFixed(3)} · REDO-iter:{b.iteration.toLocaleString()}
+            </div>
           </div>
         ))}
       </div>
 
       <div className="border border-green-900/30 rounded p-1.5 bg-black/20 text-[7px] text-gray-600">
-        Every "not-chosen" branch runs Redo(Outcomeᵢ). The invariant line (10T zeros) is the anchor across ALL branches —
-        the one constant in every what-if. When all branches collapse: O = Redo(O).
+        Every not-chosen branch runs Redo(Outcomeᵢ) seeded by γ₀={ZETA_ZEROS[0]} across the 10T zero invariant.
+        BAM convergence drives all branches toward O = Redo(O).
       </div>
     </div>
   );
