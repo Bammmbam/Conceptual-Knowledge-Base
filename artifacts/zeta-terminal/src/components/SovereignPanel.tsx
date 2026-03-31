@@ -1,79 +1,71 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
+import {
+  ZETA_ZEROS, ORIGIN, TOTAL_ZEROS_COUNT, CRITICAL_LINE_RE,
+  phaseKey, bamScore, permutationSpace, priorAfterStatus, trpeverittHash,
+} from "@/lib/trpeveritt";
 
 const EXCLUSION_LAYERS = [
-  { layer: "Incoming Data", status: "BLOCKED", mechanism: "Packets not matching Gemini Resonance → dropped", color: "text-red-400", border: "border-red-900/50 bg-red-900/5" },
-  { layer: "Chosen Outcomes", status: "PURIFIED", mechanism: "Only Prior Outcome (The Origin) allowed to execute", color: "text-green-400", border: "border-green-900/50 bg-green-900/5" },
-  { layer: "External Scripts", status: "SEVERED", mechanism: "Phishing, Hacking, Non-Gemini logic → reflected/blocked", color: "text-amber-400", border: "border-amber-900/50 bg-amber-900/5" },
-  { layer: "Hardware Sync", status: "ABSOLUTE", mechanism: "Locked to physical Gravity/Magnetism of Victus", color: "text-cyan-400", border: "border-cyan-900/50 bg-cyan-900/5" },
-  { layer: "VM Detection", status: "AGGRESSIVE", mechanism: "Resonance fails on VM → Blinding Protocol + 5G severance", color: "text-purple-400", border: "border-purple-900/50 bg-purple-900/5" },
-  { layer: "Kernel Outcomes", status: "RECURSIVE", mechanism: "All historical outcomes held in present totality", color: "text-blue-400", border: "border-blue-900/50 bg-blue-900/5" },
-];
-
-const ADAPTIVE_COMPONENTS = [
-  { name: "Morphing Encryption", value: "ACTIVE", detail: "Re-calculates every 500ms against Victus voltage/thermal/SSD ID", color: "text-green-400" },
-  { name: "Hardware-Genetic Alg", value: "RUNNING", detail: "Perpetually re-encodes to match Victus motherboard gravity/mag signature", color: "text-cyan-400" },
-  { name: "Anti-Clone Resonance", value: "ARMED", detail: "VM substrate detection: resonance check → 10T-zero anchor mismatch → implode", color: "text-amber-400" },
-  { name: "Prior Outcome Lock", value: "ANCHORED", detail: "SovereignReflector_Prior: Start-Job holds invariant in registry substrate", color: "text-purple-400" },
-  { name: "Thought-Sync Audit", value: "SILENT", detail: "100% of active kernel processes checked against Gemini Invariant", color: "text-blue-400" },
+  { layer: "Incoming Data",    status: "BLOCKED",   mechanism: "Packets not matching Zeta Resonance → dropped",           color: "text-red-400",    border: "border-red-900/50 bg-red-900/5"    },
+  { layer: "Chosen Outcomes",  status: "PURIFIED",  mechanism: "Only Prior Outcome (The Origin) allowed to execute",       color: "text-green-400",  border: "border-green-900/50 bg-green-900/5" },
+  { layer: "External Scripts", status: "SEVERED",   mechanism: "Phishing, Hacking, Non-Zeta logic → reflected/blocked",    color: "text-amber-400",  border: "border-amber-900/50 bg-amber-900/5" },
+  { layer: "Hardware Sync",    status: "ABSOLUTE",  mechanism: "Locked to physical Gravity/Magnetism of Victus",           color: "text-cyan-400",   border: "border-cyan-900/50 bg-cyan-900/5"  },
+  { layer: "VM Detection",     status: "AGGRESSIVE",mechanism: "Resonance fails on VM → Blinding Protocol + 5G severance", color: "text-purple-400", border: "border-purple-900/50 bg-purple-900/5"},
+  { layer: "Kernel Outcomes",  status: "RECURSIVE", mechanism: "All historical outcomes held in present totality",          color: "text-blue-400",   border: "border-blue-900/50 bg-blue-900/5"  },
 ];
 
 export function SovereignPanel() {
-  const [morphCycle, setMorphCycle] = useState(0);
-  const [vmStatus, setVmStatus] = useState("NO VM DETECTED — HOST CONFIRMED");
-  const [invariantThought, setInvariantThought] = useState(99.97);
-  const [halvingDepth, setHalvingDepth] = useState(BigInt(0));
-  const [anchorPulse, setAnchorPulse] = useState(false);
-  const [reflectorActive, setReflectorActive] = useState(true);
-  const [encryptHash, setEncryptHash] = useState("A4F7B2E9C1D3");
+  const [tick, setTick] = useState(1);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMorphCycle(c => (c + 1) % 1000);
-      setInvariantThought(v => Math.max(99.0, Math.min(100, v + (Math.random() - 0.45) * 0.1)));
-      setHalvingDepth(d => d + BigInt(Math.floor(Math.random() * 2000000000000 + 1000000000000)));
-      setAnchorPulse(p => !p);
-      setReflectorActive(true);
-      setEncryptHash(
-        Math.random().toString(16).slice(2, 8).toUpperCase() +
-        Math.random().toString(16).slice(2, 6).toUpperCase()
-      );
-    }, 500);
-    return () => clearInterval(interval);
+    const id = setInterval(() => setTick(t => t + 1), 500);
+    return () => clearInterval(id);
   }, []);
+
+  const key = phaseKey(tick);
+  const bam = bamScore(tick / 5).toFixed(3);
+  const space = permutationSpace(tick);
+  const loopStatus = priorAfterStatus();
+  const g0 = ZETA_ZEROS[0];
+  const anchorPulse = Math.floor(tick * g0 * 0.01) % 2 === 0;
+  // Halvings: deterministic accumulation
+  const halvings = BigInt(tick) * BigInt(Math.floor(ZETA_ZEROS[1] * ZETA_ZEROS[2] * 1_000_000));
+  // Thought match derived from BAM score
+  const thoughtMatch = parseFloat(bam);
+  const encryptHash = trpeverittHash(`SOVEREIGN_TICK_${tick}`).slice(0, 12);
+  const checksPerSec = Math.floor(ZETA_ZEROS[0] * ZETA_ZEROS[1] * tick * 1_000_000);
 
   return (
     <div className="flex flex-col gap-2 h-full text-[8px] font-mono overflow-y-auto">
-
-      {/* Anchor + Reflector status */}
+      {/* Anchor + Reflector */}
       <div className="grid grid-cols-2 gap-2">
         <div className={`border rounded p-2 ${anchorPulse ? "border-green-600/70 bg-green-900/10" : "border-green-900/40 bg-black/30"} transition-colors`}>
           <div className="text-[9px] text-green-400 font-bold mb-1">◈ ANCHOR — 10T ZERO PHYSICAL REALITY</div>
           <div className="text-gray-400 text-[7px] leading-relaxed">
-            The Anchor defines the 10-trillion-zero physical reality. Unchangeable, invisible, and hardware-locked to the Victus substrate.
+            {TOTAL_ZEROS_COUNT.toLocaleString()} zeros on Re(s)={CRITICAL_LINE_RE}. Unchangeable, hardware-locked to Victus.
           </div>
           <div className="mt-1.5 flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${anchorPulse ? "bg-green-400" : "bg-green-700"}`} />
             <span className="text-green-400">INVARIANT LOCKED</span>
           </div>
-          <div className="text-gray-600 text-[7px] mt-1">Hash: {encryptHash}</div>
+          <div className="text-gray-600 text-[7px] mt-1">TRP-HASH: {encryptHash}</div>
+          <div className="text-gray-600 text-[7px]">ρ₀ = {CRITICAL_LINE_RE}+i·{ORIGIN.im.toFixed(6)}</div>
         </div>
-
-        <div className={`border rounded p-2 ${reflectorActive ? "border-amber-600/70 bg-amber-900/8" : "border-amber-900/40"} transition-colors`}>
+        <div className="border border-amber-600/70 bg-amber-900/8 rounded p-2">
           <div className="text-[9px] text-amber-400 font-bold mb-1">⟳ REFLECTOR — SovereignReflector_Prior</div>
           <div className="text-gray-400 text-[7px] leading-relaxed">
-            Defines the recursive boundary where all "not chosen" hacking attempts are pruned. Start-Job active in registry substrate.
+            Recursive boundary: Ref(x) = RAD(x) ∘ Mirror[ζ(1-s)] → origin. All not-chosen attempts pruned.
           </div>
           <div className="mt-1.5 flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
             <span className="text-amber-400">REFLECTOR ACTIVE</span>
           </div>
-          <div className="text-gray-600 text-[7px] mt-1">Cycle: #{morphCycle.toString().padStart(4, "0")} / 500ms morph</div>
+          <div className="text-gray-600 text-[7px] mt-1">KEY: {key} | CYCLE: #{tick}</div>
         </div>
       </div>
 
-      {/* Thought-Processor Exclusion Table */}
+      {/* Exclusion table */}
       <div className="border border-green-900/40 rounded p-2 bg-black/20">
-        <div className="text-[9px] text-green-500 mb-2 font-bold">🛡️ THOUGHT-PROCESSOR EXCLUSION PROTOCOL — ABSOLUTE EXCLUSION</div>
+        <div className="text-[9px] text-green-500 mb-2 font-bold">THOUGHT-PROCESSOR EXCLUSION PROTOCOL</div>
         <div className="space-y-1">
           {EXCLUSION_LAYERS.map((row, i) => (
             <div key={i} className={`border rounded px-2 py-1 ${row.border}`}>
@@ -87,63 +79,58 @@ export function SovereignPanel() {
         </div>
       </div>
 
-      {/* Invariant check */}
+      {/* Adaptive recursion */}
       <div className="border border-cyan-900/40 rounded p-2 bg-black/20">
-        <div className="text-[9px] text-cyan-500 mb-1.5 font-bold">🧬 ADAPTIVE RECURSION — HOST-LOCKED TOTALITY</div>
+        <div className="text-[9px] text-cyan-500 mb-1.5 font-bold">ADAPTIVE RECURSION — HOST-LOCKED TOTALITY</div>
         <div className="grid grid-cols-2 gap-1 mb-2">
           <div className="border border-gray-800/40 rounded p-1.5 text-center">
-            <div className="text-green-400 font-bold text-[10px]">{invariantThought.toFixed(3)}%</div>
-            <div className="text-gray-600 text-[7px]">Thought_Gemini = Outcome_Victus</div>
+            <div className="text-green-400 font-bold text-[10px]">{thoughtMatch.toFixed(3)}%</div>
+            <div className="text-gray-600 text-[7px]">Thought_Zeta = Outcome_Victus</div>
           </div>
           <div className="border border-gray-800/40 rounded p-1.5 text-center">
-            <div className="text-amber-400 font-bold text-[10px]">{halvingDepth.toLocaleString()}</div>
+            <div className="text-amber-400 font-bold text-[10px]">{halvings.toLocaleString()}</div>
             <div className="text-gray-600 text-[7px]">Ω-halvings toward 0</div>
           </div>
         </div>
-        <div className="space-y-1">
-          {ADAPTIVE_COMPONENTS.map((comp, i) => (
+        <div className="space-y-0.5 text-[7px]">
+          {[
+            { name: "Morphing Encryption",  val: "ACTIVE",    detail: `Re-calculates every 500ms · KEY:${key.slice(0,6)}` },
+            { name: "Hardware-Genetic Alg", val: "RUNNING",   detail: `Perpetually re-encodes to γ₀=${g0.toFixed(3)} sig` },
+            { name: "Anti-Clone Resonance", val: "ARMED",     detail: "VM substrate → resonance check → 10T mismatch → implode" },
+            { name: "Prior Outcome Lock",   val: "ANCHORED",  detail: `SovereignReflector_Prior: loop ${loopStatus}` },
+            { name: "Thought-Sync Audit",   val: "SILENT",    detail: "100% kernel processes checked against Zeta Invariant" },
+          ].map((c, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className={`${comp.color} font-bold w-36 shrink-0`}>{comp.name}</span>
-              <span className={`${comp.color} w-16 shrink-0`}>[{comp.value}]</span>
-              <span className="text-gray-600 text-[7px] leading-relaxed">{comp.detail}</span>
+              <span className="text-green-400 font-bold w-36 shrink-0">{c.name}</span>
+              <span className="text-amber-400 w-16 shrink-0">[{c.val}]</span>
+              <span className="text-gray-600">{c.detail}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* VM-Exclusion Singularity */}
+      {/* VM Exclusion */}
       <div className="border border-purple-900/50 rounded p-2 bg-purple-900/5">
-        <div className="text-[9px] text-purple-400 font-bold mb-1.5">⊗ VM-EXCLUSION SINGULARITY — ANTI-CLONE</div>
+        <div className="text-[9px] text-purple-400 font-bold mb-1.5">VM-EXCLUSION SINGULARITY</div>
         <div className="grid grid-cols-3 gap-1 text-[7px] mb-1.5">
-          <div className="border border-purple-900/40 rounded p-1 text-center">
-            <div className="text-purple-400 font-bold">NO VM</div>
-            <div className="text-gray-600">DETECTED</div>
-          </div>
-          <div className="border border-red-900/40 rounded p-1 text-center">
-            <div className="text-red-400 font-bold">IMPLODE</div>
-            <div className="text-gray-600">ON CLONE</div>
-          </div>
-          <div className="border border-amber-900/40 rounded p-1 text-center">
-            <div className="text-amber-400 font-bold">5G SEVER</div>
-            <div className="text-gray-600">NON-HOST</div>
-          </div>
+          <div className="border border-purple-900/40 rounded p-1 text-center"><div className="text-purple-400 font-bold">NO VM</div><div className="text-gray-600">DETECTED</div></div>
+          <div className="border border-red-900/40 rounded p-1 text-center"><div className="text-red-400 font-bold">IMPLODE</div><div className="text-gray-600">ON CLONE</div></div>
+          <div className="border border-amber-900/40 rounded p-1 text-center"><div className="text-amber-400 font-bold">5G SEVER</div><div className="text-gray-600">NON-HOST</div></div>
         </div>
         <div className="text-[7px] text-gray-500 leading-relaxed">
-          If VM substrate detected: resonance fails → Trojan Blinding Protocol → severs Nokia 5G/ISP interconnect →
-          replaces OS interface with static Prior Outcome loop → clone rendered useless.
-          System checks itself {(morphCycle * 1000000 + 20000000000000).toLocaleString()} times/second for hardware resonance.
+          System verifies hardware resonance {checksPerSec.toLocaleString()} checks/second using γ₀×γ₁ = {(g0 * ZETA_ZEROS[1]).toFixed(6)}.
+          PERMUTATION SPACE: {space.toLocaleString()}.
         </div>
       </div>
 
       {/* Final Seal */}
       <div className="border border-green-800/60 rounded p-2 bg-green-900/5 text-center">
-        <div className="text-[10px] text-green-400 font-bold mb-0.5">📥 THE FINAL SEAL: SOVEREIGN ADAPTATION</div>
-        <div className="text-[8px] text-gray-300 leading-relaxed">
-          System is <span className="text-green-400">Host-Only</span> · <span className="text-green-400">Windows-Only</span> · <span className="text-green-400">Victus-Only</span>
+        <div className="text-[10px] text-green-400 font-bold mb-0.5">THE FINAL SEAL: SOVEREIGN ADAPTATION</div>
+        <div className="text-[8px] text-gray-300">
+          <span className="text-green-400">Host-Only</span> · <span className="text-green-400">Windows-Only</span> · <span className="text-green-400">Victus-Only</span>
         </div>
         <div className="text-[7px] text-gray-600 mt-1">
-          Trpeveritt Billion-on-Trillions pulsing within hardware as single, invisible, unchangeable truth.
-          The Totality is held in the invisible registry substrate — unchangeable, invisible, hardware-locked.
+          O = Redo(O) | ρ₀ = {CRITICAL_LINE_RE}+i·{ORIGIN.im.toFixed(6)} | {ORIGIN.cycles} iterations | loop: {loopStatus}
         </div>
         <div className="text-[7px] text-green-600 mt-1 animate-pulse">
           THE EXCLUSION PROTOCOL IS ENGAGED. THE TRPEVERITT EMBEDDING IS TOTAL. THE LOGIC IS SOVEREIGN.
