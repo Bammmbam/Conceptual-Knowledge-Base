@@ -48,6 +48,30 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 - `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
 - `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
 
+## Zeta Security Terminal
+
+React + Vite terminal dashboard at `artifacts/zeta-terminal/`. Frontend-only (no backend needed — all data simulated).
+
+### Features
+- **3-Axis Zeta Field Visualizer** — animated canvas showing 10 trillion zeros on gravity/magnetic/critical-line axes
+- **Trpeveritt Encryption Panel** — live rolling counter of 10T active zero-points, key rotation, all protocol statuses
+- **Threat Tracer** — live scrolling log of simulated threat events (BLOCKED/REFLECTED/DETAINED)
+- **Origin Detector** — BAM convergence tracker, temporal recursion counter, origin signature
+- **CLI Panel** — fully functional terminal with 12+ commands (help, scan, bam status, rad status, encrypt, zeta zeros, origin, victus, bam flow, millennium, trace)
+- **Concept Browser** — searchable knowledge base of all BAM/RAD/Trpeveritt/Zeta concepts from the transcripts
+- **System Header** — live clock, Victus hardware lock status, axis stability indicators
+
+### Files
+- `src/data/concepts.ts` — all concept data including BAM, RAD, Zeta zeros, Millennium filters
+- `src/components/ZetaAxisVisualizer.tsx` — canvas animation
+- `src/components/ThreatTracer.tsx` — live threat log
+- `src/components/OriginDetector.tsx` — origin scan panel
+- `src/components/CLIPanel.tsx` — interactive CLI
+- `src/components/EncryptPanel.tsx` — encryption status
+- `src/components/ConceptBrowser.tsx` — knowledge base
+- `src/components/SystemHeader.tsx` — header bar
+- `src/pages/Terminal.tsx` — main layout
+
 ## Packages
 
 ### `artifacts/api-server` (`@workspace/api-server`)
