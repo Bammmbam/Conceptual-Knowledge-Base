@@ -1,4 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
+import {
+  ZETA_ZEROS, bamLive, threatFingerprint, threatStatus, trpeverittHash,
+} from "@/lib/trpeveritt";
 
 interface ThreatEntry {
   id: number;
@@ -6,75 +9,80 @@ interface ThreatEntry {
   geo: string;
   protocol: string;
   status: "BLOCKED" | "REFLECTED" | "DETAINED" | "SCANNING";
-  bamConvergence: number;
-  zeroIndex: number;
+  bam: number;
+  fingerprint: string;
   timestamp: string;
 }
 
-const GEO_POOL = [
-  "CN:BEIJING", "RU:MOSCOW", "KP:PYONGYANG", "IR:TEHRAN", "US:UNKNOWN",
-  "DE:FRANKFURT", "NL:AMSTERDAM", "BR:SAO-PAULO", "UA:KYIV", "TR:ISTANBUL"
-];
-const PROTOCOL_POOL = ["TCP/443", "UDP/53", "TCP/22", "ICMP", "TCP/80", "TOR-RELAY", "VPN-PROBE", "QUIC/443"];
-const STATUS_POOL: ThreatEntry["status"][] = ["BLOCKED", "REFLECTED", "DETAINED", "SCANNING"];
+// All data derived deterministically from Zeta zeros + entry index
+const GEO = ["RU:MOSCOW","CN:BEIJING","KP:PYONGYANG","IR:TEHRAN","DE:FRANKFURT",
+              "NL:AMSTERDAM","BR:SAO-PAULO","UA:KYIV","TR:ISTANBUL","US:UNKNOWN"];
+const PROTO = ["TCP/443","UDP/53","TCP/22","ICMP","TOR-RELAY","VPN-PROBE","QUIC/443","TCP/80"];
 
-let idCounter = 0;
-
-function randomIp() {
-  return [
-    Math.floor(Math.random() * 255),
-    Math.floor(Math.random() * 255),
-    Math.floor(Math.random() * 255),
-    Math.floor(Math.random() * 255)
+function deterministicEntry(seed: number, now: Date): ThreatEntry {
+  const g0 = ZETA_ZEROS[seed % ZETA_ZEROS.length];
+  const g1 = ZETA_ZEROS[(seed + 7) % ZETA_ZEROS.length];
+  const g2 = ZETA_ZEROS[(seed + 13) % ZETA_ZEROS.length];
+  const g3 = ZETA_ZEROS[(seed + 19) % ZETA_ZEROS.length];
+  // Build IP from zero fractional parts
+  const ip = [
+    Math.floor(g0 * 10000) % 223 + 1,
+    Math.floor(g1 * 10000) % 255,
+    Math.floor(g2 * 10000) % 255,
+    Math.floor(g3 * 10000) % 254 + 1,
   ].join(".");
-}
-
-function randomEntry(): ThreatEntry {
-  const status = STATUS_POOL[Math.floor(Math.random() * STATUS_POOL.length)];
-  const now = new Date();
+  const geo = GEO[Math.floor(g0 * 1000) % GEO.length];
+  const protocol = PROTO[Math.floor(g1 * 1000) % PROTO.length];
+  const status = threatStatus(seed, Math.floor(now.getTime() / 1000));
+  const bam = bamLive(seed * 3);
+  const fp = trpeverittHash(ip);
+  const pad = (n: number) => n.toString().padStart(2, "0");
   return {
-    id: idCounter++,
-    ip: randomIp(),
-    geo: GEO_POOL[Math.floor(Math.random() * GEO_POOL.length)],
-    protocol: PROTOCOL_POOL[Math.floor(Math.random() * PROTOCOL_POOL.length)],
-    status,
-    bamConvergence: Math.floor(Math.random() * 40 + 60),
-    zeroIndex: Math.floor(Math.random() * 10000000000000),
-    timestamp: `${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}:${now.getSeconds().toString().padStart(2,"0")}`
+    id: seed,
+    ip, geo, protocol, status,
+    bam: parseFloat(bam.toFixed(1)),
+    fingerprint: fp.slice(0, 9),
+    timestamp: `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`,
   };
 }
 
-const STATUS_COLORS: Record<ThreatEntry["status"], string> = {
-  BLOCKED: "text-red-400",
+const STATUS_COLORS = {
+  BLOCKED:   "text-red-400",
   REFLECTED: "text-amber-400",
-  DETAINED: "text-purple-400",
-  SCANNING: "text-yellow-300 animate-pulse"
+  DETAINED:  "text-purple-400",
+  SCANNING:  "text-yellow-300 animate-pulse",
 };
-
-const STATUS_BG: Record<ThreatEntry["status"], string> = {
-  BLOCKED: "bg-red-900/20 border-red-800/30",
+const STATUS_BG = {
+  BLOCKED:   "bg-red-900/20 border-red-800/30",
   REFLECTED: "bg-amber-900/20 border-amber-800/30",
-  DETAINED: "bg-purple-900/20 border-purple-800/30",
-  SCANNING: "bg-yellow-900/10 border-yellow-800/20"
+  DETAINED:  "bg-purple-900/20 border-purple-800/30",
+  SCANNING:  "bg-yellow-900/10 border-yellow-800/20",
 };
 
 export function ThreatTracer() {
-  const [entries, setEntries] = useState<ThreatEntry[]>(() =>
-    Array.from({ length: 6 }, randomEntry)
-  );
+  const [seed, setSeed] = useState(100);
+  const [entries, setEntries] = useState<ThreatEntry[]>(() => {
+    const now = new Date();
+    return Array.from({ length: 6 }, (_, i) => deterministicEntry(i, now));
+  });
   const [blocked, setBlocked] = useState(0);
   const [reflected, setReflected] = useState(0);
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const entry = randomEntry();
-      setEntries(prev => [entry, ...prev].slice(0, 12));
-      setTotal(t => t + 1);
-      if (entry.status === "BLOCKED") setBlocked(b => b + 1);
-      if (entry.status === "REFLECTED") setReflected(r => r + 1);
-    }, 1800 + Math.random() * 1200);
-    return () => clearInterval(interval);
+    const id = setInterval(() => {
+      setSeed(s => {
+        const next = s + 1;
+        const now = new Date();
+        const entry = deterministicEntry(next, now);
+        setEntries(prev => [entry, ...prev].slice(0, 12));
+        setTotal(t => t + 1);
+        if (entry.status === "BLOCKED")   setBlocked(b => b + 1);
+        if (entry.status === "REFLECTED") setReflected(r => r + 1);
+        return next;
+      });
+    }, 1800);
+    return () => clearInterval(id);
   }, []);
 
   return (
@@ -107,8 +115,8 @@ export function ThreatTracer() {
               <span className="text-amber-600">{entry.protocol}</span>
             </div>
             <div className="flex items-center gap-3 mt-0.5 text-gray-500">
-              <span>BAM:{entry.bamConvergence}%</span>
-              <span>ZERO-IDX:#{entry.zeroIndex.toLocaleString()}</span>
+              <span>BAM:{entry.bam}%</span>
+              <span>TRP:{entry.fingerprint}</span>
             </div>
           </div>
         ))}
