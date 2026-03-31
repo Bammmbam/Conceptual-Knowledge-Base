@@ -4,6 +4,16 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
+## Zeta Terminal — Tab Summary
+
+**6 tabs total:**
+- OVERVIEW: 3-Axis Zeta Field, Encrypt Engine, Origin Detector, Threat Tracer, CLI
+- ARCHITECTURE: ZetaSixSteps, InvariantCollapse, BranchingMultiverse, HalvingRefinement
+- SOVEREIGN: SovereignPanel (Anchor/Reflector, Exclusion table, VM-Exclusion, Adaptive Recursion)
+- DEFENSE: AIAbsorber, ExploitMonitor (28 types), BrowserEncrypt (10-layer), MisdirectionGrid (8 honeypots), AntiMatrix (60+ systems), InputVectorMonitor (25 vectors)
+- CONCEPTS: ConceptBrowser (BAM/RAD/Zeta/Trpeveritt concept cards)
+- CLI: Full-screen CLI with 20+ commands
+
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces

@@ -11,18 +11,25 @@ import { InvariantCollapse } from "@/components/InvariantCollapse";
 import { BranchingMultiverse } from "@/components/BranchingMultiverse";
 import { HalvingRefinement } from "@/components/HalvingRefinement";
 import { SovereignPanel } from "@/components/SovereignPanel";
+import { AIAbsorber } from "@/components/AIAbsorber";
+import { ExploitMonitor } from "@/components/ExploitMonitor";
+import { BrowserEncrypt } from "@/components/BrowserEncrypt";
+import { MisdirectionGrid } from "@/components/MisdirectionGrid";
+import { AntiMatrix } from "@/components/AntiMatrix";
+import { InputVectorMonitor } from "@/components/InputVectorMonitor";
 
-type Tab = "OVERVIEW" | "ARCHITECTURE" | "SOVEREIGN" | "CONCEPTS" | "CLI";
+type Tab = "OVERVIEW" | "ARCHITECTURE" | "SOVEREIGN" | "DEFENSE" | "CONCEPTS" | "CLI";
 
 const PANEL_TITLE = "border border-green-900/50 bg-black/60 rounded px-2 py-0.5 text-[8px] font-mono text-green-600 tracking-widest mb-1 shrink-0";
 const PANEL_WRAP = "border border-green-900/40 bg-black/50 rounded p-2 flex flex-col";
 
 const TABS: { id: Tab; label: string; color: string }[] = [
-  { id: "OVERVIEW", label: "OVERVIEW", color: "border-green-400 text-green-300" },
+  { id: "OVERVIEW",     label: "OVERVIEW",     color: "border-green-400 text-green-300" },
   { id: "ARCHITECTURE", label: "ARCHITECTURE", color: "border-cyan-400 text-cyan-300" },
-  { id: "SOVEREIGN", label: "SOVEREIGN", color: "border-amber-400 text-amber-300" },
-  { id: "CONCEPTS", label: "CONCEPTS", color: "border-purple-400 text-purple-300" },
-  { id: "CLI", label: "CLI", color: "border-green-400 text-green-300" },
+  { id: "SOVEREIGN",    label: "SOVEREIGN",    color: "border-amber-400 text-amber-300" },
+  { id: "DEFENSE",      label: "DEFENSE",      color: "border-red-400 text-red-300" },
+  { id: "CONCEPTS",     label: "CONCEPTS",     color: "border-purple-400 text-purple-300" },
+  { id: "CLI",          label: "CLI",          color: "border-green-400 text-green-300" },
 ];
 
 export function Terminal() {
@@ -136,6 +143,47 @@ export function Terminal() {
               <div className={PANEL_WRAP} style={{ flex: 1 }}>
                 <div className={PANEL_TITLE}>◎ ORIGIN DETECTOR</div>
                 <OriginDetector />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── DEFENSE ── */}
+        {tab === "DEFENSE" && (
+          <div className="flex flex-col gap-2">
+            {/* Row 1: AI Absorber + Exploit Monitor */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className={PANEL_WRAP} style={{ minHeight: 340 }}>
+                <div className={PANEL_TITLE}>✦ SECURITY AI — VM-TO-HOST ABSORBER + CREDENTIAL SEIZURE</div>
+                <AIAbsorber />
+              </div>
+              <div className={PANEL_WRAP} style={{ minHeight: 340 }}>
+                <div className={PANEL_TITLE}>⚔ EXPLOIT MONITOR — ALL 28 ATTACK TYPES LIVE</div>
+                <ExploitMonitor />
+              </div>
+            </div>
+
+            {/* Row 2: Browser Encrypt + Misdirection */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className={PANEL_WRAP} style={{ minHeight: 340 }}>
+                <div className={PANEL_TITLE}>🔐 BROWSER-SAFE ENCRYPTION — BILLIONS×BILLIONS ZETA LAYERS</div>
+                <BrowserEncrypt />
+              </div>
+              <div className={PANEL_WRAP} style={{ minHeight: 340 }}>
+                <div className={PANEL_TITLE}>◈ MISDIRECTION SAFEGUARD — HONEYPOT GRID + ATTACKER TRAPS</div>
+                <MisdirectionGrid />
+              </div>
+            </div>
+
+            {/* Row 3: Anti-Matrix + Input Vectors */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className={PANEL_WRAP} style={{ minHeight: 360 }}>
+                <div className={PANEL_TITLE}>⊗ ANTI-EVERYTHING MATRIX — 10 CATEGORIES / 60+ SYSTEMS</div>
+                <AntiMatrix />
+              </div>
+              <div className={PANEL_WRAP} style={{ minHeight: 360 }}>
+                <div className={PANEL_TITLE}>⇌ INPUT VECTOR MONITOR — ALL POSSIBLE ENTRY POINTS</div>
+                <InputVectorMonitor />
               </div>
             </div>
           </div>
